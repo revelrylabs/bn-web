@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { observer } from "mobx-react";
+import { Link } from "react-router-dom";
 import { Typography, withStyles } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import PropTypes from "prop-types";
@@ -18,6 +19,7 @@ import cart from "../../../stores/cart";
 import EditCartItemDialog from "./EditCartItemDialog";
 import CheckoutForm from "../../common/cart/CheckoutFormWrapper";
 import Bigneon from "../../../helpers/bigneon";
+import Button from "../../elements/Button";
 
 const styles = theme => ({
 	card: {
@@ -77,7 +79,8 @@ class CheckoutConfirmation extends Component {
 		super(props);
 
 		this.state = {
-			editingItemId: null
+			editingItemId: null,
+			eventId: null
 		};
 	}
 
@@ -90,6 +93,8 @@ class CheckoutConfirmation extends Component {
 			this.props.match.params.id
 		) {
 			const { id } = this.props.match.params;
+
+			this.setState({ eventId: id });
 
 			selectedEvent.refreshResult(id, errorMessage => {
 				notifications.show({
@@ -154,6 +159,7 @@ class CheckoutConfirmation extends Component {
 		const { ticket_types } = selectedEvent;
 		const { classes } = this.props;
 		const { items } = cart;
+		const { eventId } = this.state;
 
 		if (!items) {
 			return null;
@@ -174,24 +180,33 @@ class CheckoutConfirmation extends Component {
 				return null;
 			}
 
+			//TODO use rows component from ticket hold list
 			return (
 				<TicketLineEntry
 					key={id}
 					col1={
-						<IconButton
-							onClick={() =>
-								this.setState({
-									editingItemId: id,
-									editingTicketTypeId: ticket_type_id,
-									editingItemName: description,
-									editingItemQuantity: quantity,
-									editingItemPriceInCents: unit_price_in_cents
-								})
-							}
-							aria-label="Edit"
-						>
-							<EditIcon />
-						</IconButton>
+						//TODO this might need to be removed.
+						//If they have tickets from multiple events in a cart we need them to be able to update them here.
+						//We can't go back to ticket selection without having a specific event.
+						item_type === "Tickets" ? (
+							<IconButton
+								onClick={() =>
+									this.setState({
+										editingItemId: id,
+										editingTicketTypeId: ticket_type_id,
+										editingTicketPricingId: ticket_pricing_id,
+										editingItemName: description,
+										editingItemQuantity: quantity,
+										editingItemPriceInCents: unit_price_in_cents
+									})
+								}
+								aria-label="Edit"
+							>
+								<EditIcon style={{ height: 18 }} />
+							</IconButton>
+						) : (
+							<div style={{ marginTop: 35 }} />
+						)
 					}
 					col2={
 						<Typography variant="body1">
@@ -216,22 +231,20 @@ class CheckoutConfirmation extends Component {
 
 	renderTotals() {
 		const { classes } = this.props;
-		const { tickets, id } = selectedEvent;
+		const { eventId } = this.state;
+
 		const { fees, total_in_cents } = cart;
 
 		return (
 			<TicketLineEntry
 				col1={null}
-				// col2={
-				// 	id ? (
-				// 		null
-				// 		// <Link
-				// 		// 	to={`/events/${id}/tickets`}
-				// 		// >
-				// 		// 	<Button>Change tickets</Button>
-				// 		// </Link>
-				// 	) : null
-				// }
+				col2={
+					eventId ? (
+						<Link to={`/events/${eventId}/tickets`}>
+							<Button>Change tickets</Button>
+						</Link>
+					) : null
+				}
 				col3={
 					<span>
 						<Typography variant="body1">Service fees:</Typography>
@@ -257,6 +270,7 @@ class CheckoutConfirmation extends Component {
 		const { classes } = this.props;
 		const {
 			editingItemId,
+			editingTicketPricingId,
 			editingTicketTypeId,
 			editingItemName,
 			editingItemQuantity,
@@ -271,6 +285,7 @@ class CheckoutConfirmation extends Component {
 			<Paper className={classes.card}>
 				<EditCartItemDialog
 					id={editingItemId}
+					ticketPricingId={editingTicketPricingId}
 					ticketTypeId={editingTicketTypeId}
 					name={editingItemName}
 					quantity={editingItemQuantity}

@@ -38,8 +38,6 @@ class CheckoutSelection extends Component {
 	}
 
 	componentDidMount() {
-		cart.refreshCart();
-
 		if (
 			this.props.match &&
 			this.props.match.params &&
@@ -92,9 +90,9 @@ class CheckoutSelection extends Component {
 		return true;
 	}
 
-	onSubmit() {
+	async onSubmit() {
 		const { id } = selectedEvent;
-		const { ticketSelection } = this.state;
+		const ticketSelection = this.getTicketQuantities();
 
 		this.submitAttempted = true;
 		if (!this.validateFields()) {
@@ -124,43 +122,135 @@ class CheckoutSelection extends Component {
 		}
 
 		this.setState({ isSubmitting: true });
-		cart.addToCart(
-			ticketSelection,
-			() => {
-				notifications.show({
-					message: "Tickets added to cart",
-					variant: "success"
-				});
-				this.props.history.push(`/events/${id}/tickets/confirmation`);
-			},
-			error => {
-				this.setState({ isSubmitting: false });
 
-				let message = "Adding to cart failed.";
-				if (
-					error.response &&
-					error.response.data &&
-					error.response.data.error
-				) {
-					message = error.response.data.error;
-				}
+		const { result, error } = await this.updateCart();
 
-				notifications.show({
-					message,
-					variant: "error"
-				});
+		this.setState({ isSubmitting: false });
+
+		if (error) {
+			let message = "Adding to cart failed.";
+			if (error.response && error.response.data && error.response.data.error) {
+				message = error.response.data.error;
 			}
-		);
+
+			notifications.show({
+				message,
+				variant: "error"
+			});
+
+			return;
+		}
+
+		notifications.show({
+			message: "Tickets added to cart",
+			variant: "success"
+		});
+		this.props.history.push(`/events/${id}/tickets/confirmation`);
+	}
+
+	async updateCart() {
+		//TODO rewrite this one monday into a shared function
+		//Take existing cart details and edited cart details
+		//Make an object of ticketTypeIds, ticketPricingIds and quantityToChangeB
+		//Use that object to make all the async function calls
+
+		console.log(ticketSelection);
+
+		//TODO this is more than likely going to be replaced by a function in bn-api-node or bn-api
+		//It's way to much of a mission
+		const { items, ticketCount } = cart;
+		const { ticketSelection } = this.state;
+		const { ticket_types } = selectedEvent;
+
+		//If they have no existing items in cart, it's simple
+		if (ticketCount === 0) {
+			return cart.addToCartAsync(ticketSelection);
+		}
+
+		for (let index = 0; index < ticket_types.length; index++) {
+			const ticketType = ticket_types[index];
+
+			const { id, name } = ticketType;
+			console.log(name, " = ", id);
+
+			const ticketTypeInCart = items.find(i => {
+				return i.ticket_type_id === id;
+			});
+
+			//Get the number of tickets already added to the cart
+			const ticketTypeInCartQuantity = ticketTypeInCart
+				? ticketTypeInCart.quantity
+				: 0;
+
+			//Get the edited number of tickets
+			const ticketTypeEditQuantity =
+				ticketSelection && ticketSelection[id] ? ticketSelection[id] : 0;
+
+			if (ticketTypeEditQuantity !== null) {
+				let quantityDifference =
+					ticketTypeEditQuantity - ticketTypeInCartQuantity;
+				if (quantityDifference > 0) {
+					console.log("Increase by: ", quantityDifference);
+
+					const selectedTickets = {};
+					selectedTickets[id] = quantityDifference;
+					const { result, error } = cart.addToCartAsync(selectedTickets);
+					if (error) {
+						console.log("Increase error");
+						return { error };
+					}
+				} else if (quantityDifference < 0) {
+					const quantityToRemove = quantityDifference * -1;
+
+					console.log("Decrease by: ", quantityToRemove);
+
+					const { result, error } = cart.removeFromCartAsync(
+						ticketType.ticket_pricing.id,
+						quantityToRemove
+					);
+
+					if (error) {
+						console.log("Decrease error");
+						return { error };
+					}
+				}
+			}
+
+			// console.log("ticketTypeInCartQuantity: ", ticketTypeInCartQuantity);
+			// console.log("ticketTypeEditQuantity: ", ticketTypeEditQuantity);
+		}
+		return { result: true };
+	}
+
+	getTicketQuantities() {
+		//If we have a ticket quantity in a state, use that, else show from existing cart if it exists there.
+		const { items } = cart;
+		const { ticketSelection } = this.state;
+
+		const cartSelection = {};
+		if (items) {
+			items.forEach(item => {
+				const { item_type, ticket_type_id, quantity } = item;
+				if (item_type === "Tickets") {
+					cartSelection[ticket_type_id] = quantity;
+				}
+			});
+		}
+
+		const mergedResults = { ...cartSelection, ...ticketSelection };
+		return mergedResults;
 	}
 
 	renderTicketPricing() {
 		const { ticket_types } = selectedEvent;
 		const { ticketSelection, errors } = this.state;
-
+		const { items } = cart;
 		if (!ticket_types) {
 			//TODO use a loader
 			return null; //Still loading this
 		}
+
+		const ticketQuantities = this.getTicketQuantities(items, ticketSelection);
 
 		return ticket_types.map(
 			({ id, name, status, ticket_pricing, increment }) => {
@@ -181,7 +271,7 @@ class CheckoutSelection extends Component {
 						available={!!ticket_pricing}
 						price={price}
 						error={errors[id]}
-						amount={ticketSelection[id]}
+						amount={ticketQuantities[id]}
 						increment={increment}
 						onNumberChange={amount =>
 							this.setState(({ ticketSelection }) => {

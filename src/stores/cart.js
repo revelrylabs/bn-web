@@ -1,5 +1,4 @@
 import { observable, computed, action } from "mobx";
-import axios from "axios";
 import notifications from "./notifications";
 import Bigneon from "../helpers/bigneon";
 import user from "./user";
@@ -113,15 +112,61 @@ class Cart {
 	}
 
 	@action
-	removeFromCart(cart_item_id, quantity, onSuccess, onError) {
+	async addToCartAsync(selectedTickets) {
+		const ticketIds = Object.keys(selectedTickets);
+
+		//Promises array of posts to the add cart function and iterate through them
+		let items = [];
+		ticketIds.forEach(id => {
+			const quantity = selectedTickets[id];
+			items.push({
+				ticket_type_id: id,
+				quantity
+			});
+		});
+
+		return new Promise(resolve => {
+			Bigneon()
+				.cart.add({ items })
+				.then(result => {
+					//Refresh cart from the API to make sure we in sync
+					this.refreshCart();
+
+					resolve({ result });
+				})
+				.catch(error => {
+					console.error(error);
+					resolve({ error });
+				});
+		});
+	}
+
+	@action
+	removeFromCart(ticket_pricing_id, quantity, onSuccess, onError) {
 		Bigneon()
-			.cart.del({ cart_item_id, quantity })
+			.cart.del({ ticket_pricing_id, quantity })
 			.then(() => {
 				//TODO maybe update the store variable quickly, then refresh from cart for that zippy feeling
 				this.refreshCart();
 				onSuccess();
 			})
 			.catch(error => onError(error));
+	}
+
+	@action
+	removeFromCartAsync(ticket_pricing_id, quantity) {
+		return new Promise(resolve => {
+			Bigneon()
+				.cart.del({ ticket_pricing_id, quantity })
+				.then(result => {
+					this.refreshCart();
+					resolve({ result });
+				})
+				.catch(error => {
+					console.error(error);
+					resolve({ error });
+				});
+		});
 	}
 
 	@action

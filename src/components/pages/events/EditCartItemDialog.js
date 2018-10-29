@@ -1,3 +1,4 @@
+//TODO hopefully the logic here gets moved to bn-api-node or bn-api
 import React from "react";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
@@ -31,7 +32,7 @@ class EditCartItemDialog extends React.Component {
 	}
 
 	onUpdate() {
-		const { id, ticketTypeId, onClose } = this.props;
+		const { id, ticketPricingId, ticketTypeId, onClose } = this.props;
 		const { quantity } = this.state;
 
 		this.setState({ isSubmitting: true });
@@ -73,7 +74,7 @@ class EditCartItemDialog extends React.Component {
 			const quantityToRemove = quantityDifference * -1;
 
 			cart.removeFromCart(
-				id,
+				ticketPricingId,
 				quantityToRemove, //Make it a positive to get the number we need to remove from cart
 				() => {
 					notification.show({
@@ -123,6 +124,7 @@ class EditCartItemDialog extends React.Component {
 			onClose,
 			priceInCents,
 			name,
+			ticketPricingId,
 			ticketTypeId,
 			...rest
 		} = this.props;
@@ -192,6 +194,7 @@ class EditCartItemDialog extends React.Component {
 
 EditCartItemDialog.propTypes = {
 	id: PropTypes.string,
+	ticketPricingId: PropTypes.string,
 	ticketTypeId: PropTypes.string,
 	name: PropTypes.string,
 	priceInCents: PropTypes.number,
