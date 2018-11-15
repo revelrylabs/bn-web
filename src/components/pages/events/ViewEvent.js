@@ -203,8 +203,6 @@ class ViewEvent extends Component {
 			eventStartDateMoment
 		} = event;
 
-		console.log(ticket_types[0]);
-
 		const subCardContent = (
 			<div className={classes.eventSubCardContent}>
 				<div className={classes.eventSubCardRow1}>
@@ -274,8 +272,7 @@ class ViewEvent extends Component {
 						if (ticket_pricing) {
 							price = ticket_pricing.price_in_cents / 100;
 							//description = ticket_pricing.name;
-
-							console.log(ticket_pricing.name);
+							//TODO check if they're available, if none are available change the layout
 						}
 						return (
 							<Typography key={id} className={classes.ticketPricing}>
