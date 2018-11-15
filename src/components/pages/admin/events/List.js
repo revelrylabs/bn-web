@@ -97,6 +97,8 @@ class EventsList extends Component {
 								});
 							})
 							.catch(error => {
+								console.log("error with id: ", id);
+
 								console.error(error);
 
 								let message = "Loading events failed.";
