@@ -60,13 +60,20 @@ class CheckoutForm extends Component {
 		const { error, token } = await this.props.stripe.createToken({ name });
 		if (error) {
 			const { message, type } = error;
-			console.error(error);
-			notification.show({
-				message,
-				variant: type === "validation_error" ? "warning" : "error"
-			});
 
-			this.setState({ isSubmitting: false, statusMessage: null });
+			console.error(error);
+
+			if (this.props.onMobileError) {
+				// If an error is returned on a mobile app auth attempt, bypass the notification and send it back
+				this.props.onMobileError(message, type)
+			} else {
+				notification.show({
+					message,
+					variant: type === "validation_error" ? "warning" : "error"
+				});
+
+				this.setState({ isSubmitting: false, statusMessage: null });
+			}
 		} else {
 			const { onToken } = this.props;
 			this.setState({ statusMessage: "Processing payment..." });
@@ -156,6 +163,7 @@ class CheckoutForm extends Component {
 
 CheckoutForm.propTypes = {
 	onToken: PropTypes.func.isRequired,
+	onMobileError: PropTypes.func,
 	classes: PropTypes.object.isRequired
 };
 
