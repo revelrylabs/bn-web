@@ -56,6 +56,7 @@ class Event extends Component {
 
 	componentDidMount() {
 		layout.toggleSideMenu(true);
+
 		if (
 			this.props.match &&
 			this.props.match.params &&

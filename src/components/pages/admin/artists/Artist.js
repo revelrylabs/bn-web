@@ -58,7 +58,6 @@ class Artist extends Component {
 
 	componentDidMount() {
 		layout.toggleSideMenu(true);
-
 		const { artistId } = this.state;
 
 		if (artistId) {

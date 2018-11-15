@@ -12,6 +12,7 @@ import Bigneon from "../../../../helpers/bigneon";
 import PageHeading from "../../../elements/PageHeading";
 import layout from "../../../../stores/layout";
 
+
 const styles = theme => ({
 	paper: {},
 	cardContent: {
@@ -31,6 +32,7 @@ class OrganizationsList extends Component {
 
 	componentDidMount() {
 		layout.toggleSideMenu(true);
+
 		Bigneon()
 			.organizations.index()
 			.then(response => {

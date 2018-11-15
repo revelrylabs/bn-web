@@ -32,6 +32,7 @@ class FanHub extends Component {
 	componentDidMount() {
 		layout.toggleSideMenu(true);
 
+
 		Bigneon()
 			.tickets.index()
 			.then(response => {

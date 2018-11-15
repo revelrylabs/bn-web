@@ -136,7 +136,6 @@ class Container extends React.Component {
 							</Drawer>
 						</Hidden>
 					) : null}
-
 					<main
 						className={classnames({
 							[classes.content]: true,
