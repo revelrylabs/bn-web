@@ -12,13 +12,13 @@ export default class MobileStripeAuth extends Component {
     const {match: {params: {access_token, refresh_token}}} = this.props
 
     // Set the access and refresh tokens based on the URL parameters
-    localStorage.setItem("access_token", access_token)
-    localStorage.setItem("refresh_token", refresh_token)
+    localStorage.setItem("access_token", decodeURIComponent(access_token))
+    localStorage.setItem("refresh_token", decodeURIComponent(refresh_token))
 
     // Refresh/authorize the user
-    user.refreshUser(null, (error) => {
+    user.refreshToken(() => this.refreshUser(), (error) => {
       // return an error if the user could not be authorized
-      window.postMessage("error:User could not be authenticated")
+      window.postMessage(JSON.stringify({error: "User could not be authenticated"}))
     });
   }
 
@@ -33,26 +33,28 @@ export default class MobileStripeAuth extends Component {
         type: type,
         last4: data.last4,
         brand: data.brand,
-        id: data.id,
+        card_id: data.id,
         exp_month: data.exp_month,
         exp_year:data.exp_year,
+        name: data.name
       });
-      
+
       window.postMessage(JSON.stringify({
         id: id,
         type: type,
         last4: data.last4,
         brand: data.brand,
-        id: data.id,
+        card_id: data.id,
         exp_month: data.exp_month,
         exp_year:data.exp_year,
+        name: data.name,
       }))
     }
   }
 
   onMobileError = (message, _type) => {
     // If we receive a Stripe error, return it
-    window.postMessage(`error:${message}`)
+    window.postMessage(JSON.stringify({error: message}))
   }
 
   render() {

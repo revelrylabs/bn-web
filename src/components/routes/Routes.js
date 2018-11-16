@@ -56,7 +56,7 @@ import EmbeddedWidget from "../widgets/Embedded";
 import user from "../../stores/user";
 import AuthenticateCheckDialog from "../common/AuthenticateCheckDialog";
 import WidgetLinkBuilder from "../widgets/LinkBuilder";
-import ReceiveTransfer from "../pages/tickets/ReceiveTransfer";
+import ReceiveTransfer from "../pages/fanhub/ReceiveTransfer";
 
 const PrivateRoute = ({ component: Component, isAuthenticated, ...rest }) => {
 	//If isAuthenticated is null then we're still checking the state
