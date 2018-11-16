@@ -11,7 +11,7 @@ export const bigneonFactory = (options = {}, headers = {}, mockData) => {
 				port: process.env.REACT_APP_API_PORT,
 				timeout: process.env.REACT_APP_API_TIMEOUT || 30000,
 				basePath: process.env.REACT_APP_API_BASEPATH || "",
-				prefix: "https://thingproxy.freeboard.io/fetch/https://staging.bigneon.com/api/"
+				prefix: process.env.REACT_APP_API_PREFIX || "",
 			},
 			...options
 		};
