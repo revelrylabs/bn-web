@@ -28,17 +28,6 @@ export default class MobileStripeAuth extends Component {
 
     // If we receive a credit card Token, pass credit card info back to the WebView
     if (type === "card") {
-      console.log({
-        id: id,
-        type: type,
-        last4: data.last4,
-        brand: data.brand,
-        card_id: data.id,
-        exp_month: data.exp_month,
-        exp_year:data.exp_year,
-        name: data.name
-      });
-
       window.postMessage(JSON.stringify({
         id: id,
         type: type,
@@ -58,6 +47,6 @@ export default class MobileStripeAuth extends Component {
   }
 
   render() {
-    return <CheckoutForm onToken={this.onToken} onMobileError={this.onMobileError} />
+    return <CheckoutForm mobile onToken={this.onToken} onMobileError={this.onMobileError} />
   }
 }

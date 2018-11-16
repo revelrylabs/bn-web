@@ -100,6 +100,22 @@ class CheckoutForm extends Component {
 		);
 	}
 
+	get submitButton() {
+		const { isSubmitting } = this.state;
+
+		if (this.props.mobile) {
+			return isSubmitting ? "Saving details..." : "Save Payment Info"
+		} else {
+			return isSubmitting ? "Checking out..." : "Purchase tickets"
+		}
+	}
+
+	get header() {
+		if (this.props.mobile) { return null }
+
+		return <Typography variant="subheading">Payment details</Typography>
+	}
+
 	render() {
 		const { classes, theme } = this.props;
 		const { isSubmitting } = this.state;
@@ -130,7 +146,7 @@ class CheckoutForm extends Component {
 			<form noValidate autoComplete="off" onSubmit={this.onSubmit.bind(this)}>
 				{this.renderProcessingDialog()}
 				<Grid className={classes.paymentContainer} item xs={12} sm={12} lg={6}>
-					<Typography variant="subheading">Payment details</Typography>
+					{this.header}
 					<br />
 					{/* <input
 						value={name}
@@ -152,7 +168,7 @@ class CheckoutForm extends Component {
 							size="large"
 							variant="callToAction"
 						>
-							{isSubmitting ? "Checking out..." : "Purchase tickets"}
+							{this.submitButton}
 						</Button>
 					</div>
 				</Grid>
@@ -164,7 +180,8 @@ class CheckoutForm extends Component {
 CheckoutForm.propTypes = {
 	onToken: PropTypes.func.isRequired,
 	onMobileError: PropTypes.func,
-	classes: PropTypes.object.isRequired
+	classes: PropTypes.object.isRequired,
+	mobile: PropTypes.bool,
 };
 
 export default withStyles(styles, { withTheme: true })(
